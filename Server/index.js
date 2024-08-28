@@ -1,16 +1,18 @@
-const express = require('express');
-const cors = require('cors');
+import express, { json } from 'express';
+import cors from 'cors';
 //to connect db
-require('./db/config');
+import './db/config';
 
 //Loading Collections
-const User = require('./db/users');
-const Product = require('./db/products');
-const { default: mongoose } = require('mongoose');
+import User, { findOne } from './db/users';
+import Product, { find, deleteOne, findOne as _findOne, updateOne } from './db/products';
+import { default as mongoose } from 'mongoose';
 
+import { sign } from 'jsonwebtoken';
+const jwtKey = 'e-comm'; //Keep this key secret otherwise anyone can generate webTokens from this.
 
 const app = express();
-app.use(express.json());
+app.use(json());
 app.use(cors());//to handle cors error.
 
 //register api
@@ -18,10 +20,18 @@ app.post("/register", async (req, resp) => {
     console.log("Sever listening.........");
     console.log(req.body);
     let userData = new User(req.body);
-    let result = await userData.save();
-    result = result.toObject();
-    delete result.password;
-    resp.send(result);
+    let user = await userData.save();
+    user = user.toObject();
+    delete user.password;
+    sign({ user }, jwtKey, { expiresIn: "2h" }, (err, token) => {
+        if (err) {
+            resp.send({ result: "Something went wrong" });
+        }
+        else {
+            resp.send({ user, auth: token });
+        }
+    })
+    // console.log("hue");
 });
 
 //login api
@@ -30,12 +40,20 @@ app.post("/login", async (req, resp) => {
     console.log("server login listening.........");
     console.log(data);
     if (data.email && data.password) {
-        let result = await User.findOne(data);
+        let user = await findOne(data);
 
-        if (result !== null) {
-            result = result.toObject();
-            delete result.password;
-            resp.send(result);
+        if (user !== null) {
+            user = user.toObject();
+            delete user.password;
+            sign({ user }, jwtKey, { expiresIn: "2h" }, (err, token) => {
+                if (err) {
+                    resp.send({ result: "Something went wrong" });
+                }
+                else {
+                    resp.send({ user, auth: token });
+                }
+
+            })
         }
         else {
             resp.send({ "email": "Invalid" });
@@ -54,7 +72,7 @@ app.post("/add-product", async (req, resp) => {
 
 //product list api
 app.get("/products", async (req, resp) => {
-    let prodcuts = await Product.find();
+    let prodcuts = await find();
     if (prodcuts.length > 0) {
         resp.send(prodcuts);
     }
@@ -66,14 +84,14 @@ app.get("/products", async (req, resp) => {
 //deleting api
 
 app.delete("/delete/:id", async (req, resp) => {
-    const result = await Product.deleteOne({ _id: req.params.id });
+    const result = await deleteOne({ _id: req.params.id });
     resp.send(result);
 });
 
 
 //Findone API
 app.get("/product/:id", async (req, resp) => {
-    let result = await Product.findOne({ _id: req.params.id });
+    let result = await _findOne({ _id: req.params.id });
     if (result)
         resp.send(result);
     else
@@ -83,7 +101,7 @@ app.get("/product/:id", async (req, resp) => {
 //Updating API
 
 app.put("/update/:id", async (req, resp) => {
-    let result = await Product.updateOne(
+    let result = await updateOne(
         { _id: req.params.id },
         { $set: req.body }
     );
@@ -92,6 +110,13 @@ app.put("/update/:id", async (req, resp) => {
     else
         resp.send({ result: "Not Found" })
 });
+//This is a middleware function that is being created to verify JWT tokens and then giving access to APIs.
+function verifyToken(req, resp, next) {
+    let token = req.headers['authorization'];
+    console.log("middleware called.....", token);
+    next();
+}
+
 
 app.listen(5000);
 

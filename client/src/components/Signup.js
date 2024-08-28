@@ -30,24 +30,27 @@ const Signup = () => {
 
     const collectData = async () => {
         if (name !== "" && email !== "" && password !== "") {
+            console.log("HuE HuE HuE", name, email);
             let result = await fetch("http://localhost:5000/register", {
                 method: "post",
+
                 body: JSON.stringify({ name, email, password }),
                 headers: { "content-Type": "application/json" }
             });
             result = await result.json();
             console.log(result);
-            localStorage.setItem("user", JSON.stringify(result));
-            navigate('/');
+            console.log("yo yo yo")
+            if (result) {
+                localStorage.setItem("user", JSON.stringify(result.result));
+                localStorage.setItem("token", JSON.stringify(result.auth));
+                // navigate('/');
+            }
         }
         else {
             alert("Please fill in the requied details");
         }
     };
 
-    // console.log("hover");
-    // console.log(hoverName, hoverEmail, hoverPassword);
-    // console.log(name, email, password);
 
     return (
         <div className="grid justify-center">
@@ -59,7 +62,7 @@ const Signup = () => {
                     {hoverName === false && name === "" ? (<h1 className="text-red-500">*Enter your name</h1>) : (null)}
                     <input type="email" placeholder="Enter your email adress" className="border-2 border-blue-400 w-80 h-10 rounded-md p-2 my-3"
                         onChange={(e) => { emailInput(e) }} onClick={() => { setHoverEmail(true) }} onBlur={() => { setHoverEmail(false) }}></input>
-                    {hoverEmail === false && isValidEmail===false ? (<h1 className="text-red-500">*Enter valid email adress</h1>) : (null)}
+                    {hoverEmail === false && isValidEmail === false ? (<h1 className="text-red-500">*Enter valid email adress</h1>) : (null)}
                     <input type="password" placeholder="Enter Password" className="border-2 border-blue-400 w-80 h-10 rounded-md p-2 my-3"
                         onChange={(e) => { setUserPass(e.target.value); }} onClick={() => { setHoverPassword(true) }} onBlur={() => { setHoverPassword(false) }}></input>
                     {hoverPassword === false && password === "" ? (<h1 className="text-red-500">*Enter your Password</h1>) : (null)}

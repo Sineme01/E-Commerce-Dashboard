@@ -33,8 +33,9 @@ const Login = () => {
             });
             data = await data.json();
             console.log(data);
-            if (data.email !== "Invalid") {
-                localStorage.setItem("user", JSON.stringify(data));
+            if (data.auth) {
+                localStorage.setItem("user", JSON.stringify(data.user));
+                localStorage.setItem("token", JSON.stringify(data.auth));
                 navigate("/");
             }
             else {

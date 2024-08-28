@@ -11,11 +11,10 @@ const Nav = () => {
         console.log("Logout successfully executed");
         navigate("/");
     }
-    auth = JSON.parse(auth);
-    // const info = async () => {
-    //     auth = await auth.json();
-    // }
-    // info();
+    console.log("auth sdfasddddddddddddddddd");
+    console.log(auth);
+
+    if (auth !== undefined) { console.log("hue -> ",auth);auth = JSON.parse(auth); } //
     return (
         <div className="border-2 rounded-xl shadow-md">
             <ul className="bg-white">

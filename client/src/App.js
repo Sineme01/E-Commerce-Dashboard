@@ -18,9 +18,7 @@ function App() {
         <Nav />
         <div className="flex-1">
           <Routes>
-
             <Route element={<PrivateComponent />}>
-
               <Route path='/' element={<ProductList />}></Route>
               <Route path='/add' element={<AddProduct />}></Route>
               <Route path='/update/:id' element={<Update />}></Route>
